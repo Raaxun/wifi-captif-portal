@@ -1,4 +1,9 @@
-.env
 __pycache__/
 *.pyc
-*.db
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.captive_portal.db
+.DS_Store

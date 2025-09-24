@@ -1,55 +1,36 @@
-from flask import Flask, request, render_template, redirect, url_for, session, g
-import sqlite3
+from flask import Flask, request, render_template, redirect, url_for, session, flash
+import os
+import base64
+import io
+import qrcode
 import bcrypt
 import pyotp
-import os
 from dotenv import load_dotenv
+from database import init_db, add_user, verify_user
 
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db_name = os.getenv('DB_NAME', 'captive_portal.db')
-        db = g._database = sqlite3.connect(db_name, check_same_thread=False)
-        db.row_factory = sqlite3.Row
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-def init_db():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            login TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            totp_secret TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-
-def verify_user(login, password, totp_code):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT password_hash, totp_secret FROM users WHERE login = ?
-    ''', (login,))
-    result = cursor.fetchone()
-    if not result:
-        return False
-    stored_hash, totp_secret = result
-    if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
-        return False
-    totp = pyotp.TOTP(totp_secret)
-    return totp.verify(totp_code)
+@app.route('/admin/create_user', methods=['GET', 'POST'])
+def admin_create_user():
+    if request.method == 'POST':
+        login = request.form.get('login')
+        password = request.form.get('password')
+        try:
+            totp_secret, totp_uri = add_user(login, password)
+            img = qrcode.make(totp_uri)
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            qr_code_data = buffer.getvalue()
+            qr_code_b64 = f"data:image/png;base64,{base64.b64encode(qr_code_data).decode('utf-8')}"
+            return render_template('user_created.html',
+                                 login=login,
+                                 totp_secret=totp_secret,
+                                 qr_code_b64=qr_code_b64)
+        except ValueError as e:
+            return render_template('admin_create_user.html', error=str(e))
+    return render_template('admin_create_user.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -60,8 +41,7 @@ def login():
         if verify_user(login, password, totp_code):
             session['authenticated'] = True
             return redirect(url_for('success'))
-        else:
-            return render_template('login.html', error="Authentification échouée.")
+        return render_template('login.html', error="Authentification échouée.")
     return render_template('login.html')
 
 @app.route('/success')
