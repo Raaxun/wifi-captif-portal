@@ -4,3 +4,5 @@ pyotp
 python-dotenv
 qrcode
 pillow
+jwt
+PyJWT

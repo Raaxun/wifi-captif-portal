@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Configurer le TOTP Admin</title>
+    <title>Configurer le TOTP pour {{ login }}</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -72,15 +72,15 @@
 
 <body>
     <div class="container">
-        <h1>Configurer le TOTP Admin</h1>
+        <h1>Configurer le TOTP pour {{ login }}</h1>
         <p>Scannez ce QR code avec votre application TOTP :</p>
         <div class="qr-code">
             <img src="{{ qr_code_b64 }}" alt="QR Code TOTP">
         </div>
         <p>Ou entrez manuellement ce secret :</p>
         <p class="secret">{{ totp_secret }}</p>
-        <form method="post">
-            <input type="submit" value="Valider">
+        <form method="post" action="{{ url_for('confirm_user_creation') }}">
+            <input type="submit" value="Confirmer la création">
         </form>
     </div>
 </body>

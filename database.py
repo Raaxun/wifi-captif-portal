@@ -21,25 +21,29 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 login TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
-                totp_secret TEXT NOT NULL
+                totp_secret TEXT
             )
         ''')
+        cursor.execute('SELECT id FROM users WHERE login = ?', ('admin',))
+        if cursor.fetchone() is None:
+            password_hash = bcrypt.hashpw(b'admin123', bcrypt.gensalt())
+            cursor.execute('''
+                INSERT INTO users (login, password_hash, totp_secret)
+                VALUES (?, ?, NULL)
+            ''', ('admin', password_hash))
+            print("Utilisateur admin créé (sans TOTP).")
         conn.commit()
-        return "Database initialized!"
     finally:
         conn.close()
 
-def add_user(login, password):
+def add_user(login, password, totp_secret):
     conn = get_db()
     try:
         cursor = conn.cursor()
-        # Vérifie si le login existe déjà
         cursor.execute('SELECT id FROM users WHERE login = ?', (login,))
         if cursor.fetchone() is not None:
             raise ValueError(f"Le login '{login}' existe déjà.")
-        pybytePassword =  bytes(str(password), 'utf-8')
-        password_hash = bcrypt.hashpw(pybytePassword, bcrypt.gensalt())
-        totp_secret = pyotp.random_base32()
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         cursor.execute('''
             INSERT INTO users (login, password_hash, totp_secret)
             VALUES (?, ?, ?)
@@ -47,13 +51,6 @@ def add_user(login, password):
         conn.commit()
     finally:
         conn.close()
-
-    # Génère l'URI pour le QR Code
-    totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
-        name=login,
-        issuer_name="Mon Portail Captif"
-    )
-    return totp_secret, totp_uri
 
 def delete_user(login):
     conn = get_db()
@@ -76,6 +73,8 @@ def verify_user(login, password, totp_code):
             return False
         stored_hash, totp_secret = result
         if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
+            return False
+        if not totp_secret:
             return False
         totp = pyotp.TOTP(totp_secret)
         return totp.verify(totp_code)

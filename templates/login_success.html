@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Connexion réussie</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a3a2a;
+            color: #e0f7e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .success-container {
+            background-color: rgba(26, 58, 42, 0.92);
+            border: 1px solid rgba(192, 255, 192, 0.4);
+            padding: 2.5rem;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(192, 255, 192, 0.15);
+            border-left: 4px solid rgba(100, 220, 100, 0.6);
+        }
+
+        h1 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #e0f7e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-container">
+        <h1>Connexion réussie !</h1>
+        <p>Token : {{ token }}</p>
+    </div>
+</body>
+
+</html>

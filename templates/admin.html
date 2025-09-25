@@ -25,7 +25,7 @@
             padding: 2.5rem;
             border-radius: 6px;
             width: 100%;
-            max-width: 420px;
+            max-width: 600px;
             text-align: center;
             box-shadow: 0 0 25px rgba(192, 255, 192, 0.15);
             border-left: 4px solid rgba(100, 220, 100, 0.6);
@@ -39,6 +39,29 @@
             color: #e0f7e0;
             border-bottom: 1px solid rgba(192, 255, 192, 0.5);
             padding-bottom: 0.5rem;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(80, 10, 10, 0.7);
+            color: #fff;
+            border: 1px solid #ff8a8a;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            font-weight: bold;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .logout-button:hover {
+            background-color: rgba(120, 10, 10, 0.9);
         }
 
         .button-group {
@@ -66,12 +89,16 @@
         .admin-button.active {
             background-color: rgba(30, 120, 60, 0.9);
             transform: scale(1.05);
-            padding: 1.2rem;
         }
 
         .admin-button.delete {
             background-color: rgba(80, 10, 10, 0.7);
             border: 1px solid #ff8a8a;
+        }
+
+        .admin-button.list {
+            background-color: rgba(20, 60, 100, 0.7);
+            border: 1px solid #a0a0ff;
         }
 
         .admin-button.delete.active {
@@ -138,10 +165,38 @@
             border-radius: 4px;
             border-left: 3px solid #6bff6b;
         }
+
+        .user-list {
+            display: none;
+            margin-top: 1.5rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .user-list.active {
+            display: block;
+        }
+
+        .user-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-list th,
+        .user-list td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(192, 255, 192, 0.2);
+        }
+
+        .user-list th {
+            background-color: rgba(30, 80, 50, 0.5);
+        }
     </style>
 </head>
 
 <body>
+    <a href="{{ url_for('logout') }}" class="logout-button">Déconnexion</a>
     <div class="admin-container">
         <h1>Administration</h1>
         {% if error %}
@@ -152,14 +207,37 @@
         {% endif %}
         <div class="button-group">
             <button class="admin-button" onclick="toggleForm('create')">Créer un utilisateur</button>
+            <button class="admin-button list" onclick="toggleForm('list')">Lister les utilisateurs</button>
             <button class="admin-button delete" onclick="toggleForm('delete')">Supprimer un utilisateur</button>
         </div>
         <div id="create-form" class="form-container">
-            <form method="post" action="{{ url_for('admin_create_user') }}">
+            <form method="post" action="{{ url_for('setup_user_totp') }}">
                 <input type="text" name="login" placeholder="Identifiant" required>
                 <input type="password" name="password" placeholder="Mot de passe" required>
                 <input type="submit" value="Créer">
             </form>
+        </div>
+        <div id="list-form" class="user-list">
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.login }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Aucun utilisateur trouvé.</p>
+            {% endif %}
         </div>
         <div id="delete-form" class="form-container">
             <form method="post" action="{{ url_for('admin_delete_user') }}">
@@ -171,19 +249,32 @@
     <script>
         function toggleForm(formId) {
             const createForm = document.getElementById('create-form');
+            const listForm = document.getElementById('list-form');
             const deleteForm = document.getElementById('delete-form');
-            const createButton = document.querySelector('.admin-button:not(.delete)');
+            const createButton = document.querySelector('.admin-button:not(.delete, .list)');
+            const listButton = document.querySelector('.admin-button.list');
             const deleteButton = document.querySelector('.admin-button.delete');
 
             if (formId === 'create') {
                 createForm.classList.add('active');
+                listForm.classList.remove('active');
                 deleteForm.classList.remove('active');
                 createButton.classList.add('active');
+                listButton.classList.remove('active');
+                deleteButton.classList.remove('active');
+            } else if (formId === 'list') {
+                createForm.classList.remove('active');
+                listForm.classList.add('active');
+                deleteForm.classList.remove('active');
+                createButton.classList.remove('active');
+                listButton.classList.add('active');
                 deleteButton.classList.remove('active');
             } else {
                 createForm.classList.remove('active');
+                listForm.classList.remove('active');
                 deleteForm.classList.add('active');
                 createButton.classList.remove('active');
+                listButton.classList.remove('active');
                 deleteButton.classList.add('active');
             }
         }
