@@ -34,6 +34,23 @@
             letter-spacing: 2px;
             color: #e0f7e0;
         }
+
+        .matrix-button {
+            background-color: #0dbd8b;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .matrix-button:hover {
+            background-color: #0aa375;
+        }
     </style>
 </head>
 
@@ -41,6 +58,7 @@
     <div class="success-container">
         <h1>Connexion réussie !</h1>
         <p>Token : {{ token }}</p>
+        <a href="/matrix" class="matrix-button">Accéder à Matrix</a>
     </div>
 </body>
 
