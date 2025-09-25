@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Configurer le TOTP Admin</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a3a2a;
+            color: #e0f7e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: rgba(26, 58, 42, 0.92);
+            border: 1px solid rgba(192, 255, 192, 0.4);
+            padding: 2.5rem;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #e0f7e0;
+        }
+
+        .qr-code {
+            margin: 1rem auto;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .secret {
+            word-break: break-all;
+            background-color: rgba(10, 30, 20, 0.5);
+            padding: 0.8rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        input[type="submit"] {
+            background-color: rgba(10, 80, 30, 0.7);
+            color: #fff;
+            border: 1px solid #a0ffa0;
+            padding: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Configurer le TOTP Admin</h1>
+        <p>Scannez ce QR code avec votre application TOTP (Google Authenticator, Authy, etc.) :</p>
+        <div class="qr-code">
+            <img src="{{ qr_code_b64 }}" alt="QR Code TOTP">
+        </div>
+        <p>Ou entrez manuellement ce secret :</p>
+        <p class="secret">{{ totp_secret }}</p>
+        <form method="post">
+            <input type="submit" value="Valider">
+        </form>
+    </div>
+</body>
+
+</html>

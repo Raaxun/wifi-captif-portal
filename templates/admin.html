@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Administration</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a3a2a;
+            color: #e0f7e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image:
+                linear-gradient(rgba(192, 255, 192, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(192, 255, 192, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .admin-container {
+            background-color: rgba(26, 58, 42, 0.92);
+            border: 1px solid rgba(192, 255, 192, 0.4);
+            padding: 2.5rem;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(192, 255, 192, 0.15);
+            border-left: 4px solid rgba(100, 220, 100, 0.6);
+        }
+
+        h1 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #e0f7e0;
+            border-bottom: 1px solid rgba(192, 255, 192, 0.5);
+            padding-bottom: 0.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-button {
+            background-color: rgba(30, 80, 50, 0.7);
+            color: #fff;
+            border: 1px solid #a0ffa0;
+            padding: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .admin-button.active {
+            background-color: rgba(30, 120, 60, 0.9);
+            transform: scale(1.05);
+            padding: 1.2rem;
+        }
+
+        .admin-button.delete {
+            background-color: rgba(80, 10, 10, 0.7);
+            border: 1px solid #ff8a8a;
+        }
+
+        .admin-button.delete.active {
+            background-color: rgba(120, 10, 10, 0.9);
+        }
+
+        .form-container {
+            display: none;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .form-container.active {
+            display: flex;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            background-color: rgba(10, 30, 20, 0.5);
+            border: 1px solid rgba(192, 255, 192, 0.5);
+            color: #e0f7e0;
+            padding: 0.8rem;
+            font-family: inherit;
+            font-size: 1rem;
+            border-radius: 4px;
+        }
+
+        input[type="submit"] {
+            background-color: rgba(10, 80, 30, 0.7);
+            color: #fff;
+            border: 1px solid #a0ffa0;
+            padding: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        input[type="submit"].delete {
+            background-color: rgba(80, 10, 10, 0.7);
+            border: 1px solid #ff8a8a;
+        }
+
+        .error {
+            color: #ff8a8a;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            background-color: rgba(58, 26, 26, 0.3);
+            padding: 0.6rem;
+            border-radius: 4px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .success {
+            color: #a0ffa0;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            background-color: rgba(26, 58, 26, 0.3);
+            padding: 0.6rem;
+            border-radius: 4px;
+            border-left: 3px solid #6bff6b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-container">
+        <h1>Administration</h1>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        {% if success %}
+        <p class="success">{{ success }}</p>
+        {% endif %}
+        <div class="button-group">
+            <button class="admin-button" onclick="toggleForm('create')">Créer un utilisateur</button>
+            <button class="admin-button delete" onclick="toggleForm('delete')">Supprimer un utilisateur</button>
+        </div>
+        <div id="create-form" class="form-container">
+            <form method="post" action="{{ url_for('admin_create_user') }}">
+                <input type="text" name="login" placeholder="Identifiant" required>
+                <input type="password" name="password" placeholder="Mot de passe" required>
+                <input type="submit" value="Créer">
+            </form>
+        </div>
+        <div id="delete-form" class="form-container">
+            <form method="post" action="{{ url_for('admin_delete_user') }}">
+                <input type="text" name="login" placeholder="Identifiant à supprimer" required>
+                <input type="submit" class="delete" value="Supprimer">
+            </form>
+        </div>
+    </div>
+    <script>
+        function toggleForm(formId) {
+            const createForm = document.getElementById('create-form');
+            const deleteForm = document.getElementById('delete-form');
+            const createButton = document.querySelector('.admin-button:not(.delete)');
+            const deleteButton = document.querySelector('.admin-button.delete');
+
+            if (formId === 'create') {
+                createForm.classList.add('active');
+                deleteForm.classList.remove('active');
+                createButton.classList.add('active');
+                deleteButton.classList.remove('active');
+            } else {
+                createForm.classList.remove('active');
+                deleteForm.classList.add('active');
+                createButton.classList.remove('active');
+                deleteButton.classList.add('active');
+            }
+        }
+    </script>
+</body>
+
+</html>

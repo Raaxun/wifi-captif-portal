@@ -25,6 +25,7 @@ def init_db():
             )
         ''')
         conn.commit()
+        return "Database initialized!"
     finally:
         conn.close()
 
@@ -36,8 +37,8 @@ def add_user(login, password):
         cursor.execute('SELECT id FROM users WHERE login = ?', (login,))
         if cursor.fetchone() is not None:
             raise ValueError(f"Le login '{login}' existe déjà.")
-
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        pybytePassword =  bytes(str(password), 'utf-8')
+        password_hash = bcrypt.hashpw(pybytePassword, bcrypt.gensalt())
         totp_secret = pyotp.random_base32()
         cursor.execute('''
             INSERT INTO users (login, password_hash, totp_secret)
