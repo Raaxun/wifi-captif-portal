@@ -46,15 +46,17 @@ def setup_admin_totp():
     result = cursor.fetchone()
     cursor.close()
 
-    if not result or not result['totp_secret']:
-        totp_secret = pyotp.random_base32()
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE users SET totp_secret = ? WHERE login = ?
-        ''', (totp_secret, 'admin'))
-        conn.commit()
-    else:
-        totp_secret = result['totp_secret']
+    # Si l'admin a déjà un TOTP, redirige vers la page de login
+    if result and result['totp_secret']:
+        return redirect(url_for('login'))
+
+    # Sinon, génère un nouveau TOTP
+    totp_secret = pyotp.random_base32()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE users SET totp_secret = ? WHERE login = ?
+    ''', (totp_secret, 'admin'))
+    conn.commit()
 
     totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
         name='admin',
@@ -81,6 +83,7 @@ def login():
             result = cursor.fetchone()
             cursor.close()
 
+            # Redirige vers setup_admin_totp uniquement si l'admin n'a pas de TOTP
             if not result or not result['totp_secret']:
                 return redirect(url_for('setup_admin_totp'))
 
@@ -200,6 +203,10 @@ def admin_delete_user():
     login = request.form.get('login')
     if not login:
         return render_template('admin.html', error="Login requis pour la suppression", success=None, users=get_users())
+
+    # Empêcher la suppression de l'utilisateur admin
+    if login.lower() == 'admin':
+        return render_template('admin.html', error="L'utilisateur 'admin' ne peut pas être supprimé.", success=None, users=get_users())
 
     try:
         delete_user(login)
